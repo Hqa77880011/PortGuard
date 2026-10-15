@@ -1,0 +1,1 @@
+{"seed":13,"ports":64,"length":1.5,"correlation":1.0,"slots":10000,"probes":16,"delay":2,"draws":256,"doppler":30,"slot_seconds":0.001,"noise":0.04,"snr_db":12,"alpha":0.05,"beta":0.10,"eta":0.35,"startup":0.06,"distance_cost":0.14,"switch_weight":0.18,"hysteresis":0.03,"target_rate":1.0}
