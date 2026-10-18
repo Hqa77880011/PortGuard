@@ -45,3 +45,6 @@ python -m portguard.compare --inputs "runs/*/metrics.csv" --reference PortGuard 
 
 The comparison command averages repeated rows within the specified independent unit, bootstraps units and applies paired Wilcoxon/Holm comparisons per metric.
 
+## Reproduction logic conventions
+
+Temporal aging follows the generated tape exactly: the one-slot AR(1) coefficient is J0(2*pi*doppler*slot_seconds), and delay-slot prediction uses that coefficient raised to delay. Spatial Jakes/Bessel covariance does not turn this tape into a continuous-time Jakes temporal process.

@@ -37,7 +37,7 @@ def posterior(y, probes, k, c, compensate=True):
                            k[probes]).T
     mu = gain @ y
     sigma = k - gain @ k[probes]
-    rho = j0(2 * np.pi * c['doppler'] * c['delay'] * c['slot_seconds']) if compensate else 1
+    rho = j0(2 * np.pi * c['doppler'] * c['slot_seconds']) ** c['delay'] if compensate else 1
     return rho * mu, np.maximum(np.diag(rho ** 2 * sigma + (1 - rho ** 2) * k), 0)
 
 
