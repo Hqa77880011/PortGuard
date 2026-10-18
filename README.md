@@ -2,49 +2,43 @@
 
 Implementation of **Risk- and switching-aware fluid-antenna port selection with delayed CSI.**
 
-## Install
+## Installation
 
-Use Python 3.11 in an isolated environment, then run from the repository root:
+Use Python 3.10+. Create and activate a virtual environment before installing:
 
 ```bash
+python -m venv .venv
+source .venv/bin/activate
 python -m pip install -e .
 ```
 
-## Data
+In PowerShell, replace the activation line with `.venv\Scripts\Activate.ps1`.
+
+## Data and preprocessing
 
 `prepare` generates a complex spatially correlated channel tape and independent measurement noise. The covariance combines a Jakes/Bessel term with exponential distance decay. Every controller sees the same tape; only the full-CSI oracle accesses current complete channels. There is no external dataset requirement for this simulation.
 
-## Workflow
-
 ```bash
-python -m portguard prepare
-python -m portguard run
-python -m portguard evaluate
-python -m portguard plot
+python -m portguard prepare --config config.json --output runs/default
 ```
 
-Main commands accept `--config config.json` and `--output runs/default`. Keep each seed/condition in its own output directory. The resolved configuration is written to `settings.json`.
+## Training and inference
 
-## Configuration
+```bash
+python -m portguard run --config config.json --output runs/default
+```
 
-`ports,length,correlation` define geometry/covariance. `doppler,slot_seconds,delay,noise` define aging/estimation. `probes` bounds sparse acquisition; `draws` controls posterior rate sampling. `alpha` is lower-tail probability mass; `beta` is a rate quantile. `eta,switch_weight,startup,distance_cost,hysteresis` price tail loss and movement. `target_rate` fixes outage. Training epochs, batch size, learning rate and seed use the defaults shown in `config.json` where applicable.
+## Evaluation
+
+```bash
+python -m portguard evaluate --config config.json --output runs/default
+python -m portguard plot --config config.json --output runs/default
+```
 
 ## Outputs
 
-`channel.npz` is the common tape. `decisions.csv` records actions, realized rate, oracle rate, switching, movement and host time. `metrics.csv` reports spectral efficiency, outage, worst-tail throughput, switching fraction, mean movement and near-oracle accuracy. `tradeoff.png` plots tail reliability against switching.
+`channel.npz` is the common tape. `decisions.csv` records actions/rates/movement/timing; `metrics.csv` summarizes throughput/outage/tail/switching; `tradeoff.png` visualizes the trade-off.
 
-## Implementation and controls
+Keep `config.json` with the run; it contains model/data settings and the seed where the CLI does not expose one. Use separate output directories for different seeds/conditions.
 
-Spatial conditioning retains uncertainty; temporal propagation uses Jakes correlation. The score combines a lower rate quantile, lower-tail mean and displacement/startup cost. Hysteresis requires additional advantage over staying. Next-slot probes retain local support and add high-variance ports. The generated temporal channel uses an AR process matched at one slot; multistep inference uses the declared Jakes correlation, so covariance/aging mismatch can be studied explicitly.
-
-Controls: `PortGuard`, `fixed`, `random`, `scan`, `stale-greedy`, `mean-only`, `no-cost`, `no-hysteresis`, `no-risk`, `uniform-probes`, `no-delay`, `oracle`. The run command evaluates the listed controls together.
-
-```bash
-python -m portguard.compare --inputs "runs/*/metrics.csv" --reference PortGuard --metrics spectral_efficiency outage cvar_throughput switching_rate --unit seed
-```
-
-The comparison command averages repeated rows within the specified independent unit, bootstraps units and applies paired Wilcoxon/Holm comparisons per metric.
-
-## Reproduction logic conventions
-
-Temporal aging follows the generated tape exactly: the one-slot AR(1) coefficient is J0(2*pi*doppler*slot_seconds), and delay-slot prediction uses that coefficient raised to delay. Spatial Jakes/Bessel covariance does not turn this tape into a continuous-time Jakes temporal process.
+Source inspection: Python 3.13.5, numpy 2.1.3, scipy 1.15.3, pandas 2.2.3, matplotlib 3.10.0 (installed versions inspected). Checks covered Python syntax, configuration parsing and CLI arguments. No training, full evaluation or CI was run in this update.
